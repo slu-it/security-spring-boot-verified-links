@@ -9,3 +9,7 @@ spring:
     name: security-spring-boot-verified-links
   jackson:
     default-property-inclusion: non_null
+
+application:
+  signing:
+    password: "this is a secret used for signing links"
