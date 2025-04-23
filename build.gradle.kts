@@ -5,15 +5,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
-    id("io.spring.dependency-management") version "1.1.3"
-    id("org.springframework.boot") version "3.1.3"
+    id("org.springframework.boot") version "3.4.4"
+    id("io.spring.dependency-management") version "1.1.7"
 
-    id("io.gitlab.arturbosch.detekt") version "1.22.0"
-    id("org.asciidoctor.jvm.convert") version "3.3.2"
-    id("org.jetbrains.kotlinx.kover") version "0.7.3"
-
-    kotlin("jvm") version "1.8.22"
-    kotlin("plugin.spring") version "1.8.22"
+    kotlin("jvm") version "1.9.25"
+    kotlin("plugin.spring") version "1.9.25"
 }
 
 repositories {
@@ -22,17 +18,13 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom("io.github.logrecorder:logrecorder-bom:2.7.0")
-        mavenBom("org.jetbrains.kotlin:kotlin-bom:1.8.22")
-        mavenBom("org.zalando:logbook-bom:3.4.0")
-
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2022.0.4")
+        mavenBom("org.jetbrains.kotlin:kotlin-bom:1.9.25")
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:2024.0.1")
         mavenBom(SpringBootPlugin.BOM_COORDINATES)
     }
     dependencies {
         dependency("com.ninja-squad:springmockk:4.0.2")
-        dependency("io.gitlab.arturbosch.detekt:detekt-formatting:1.22.0")
-        dependency("io.mockk:mockk-jvm:1.13.5")
+        dependency("io.mockk:mockk-jvm:1.14.0")
     }
 }
 
@@ -44,31 +36,21 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
-    implementation("org.zalando:logbook-logstash")
-    implementation("org.zalando:logbook-spring-boot-starter")
-
-    testImplementation("org.springframework:spring-webflux") // for WebTestClient
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
     testImplementation("org.springframework.security:spring-security-test")
 
     testImplementation("com.ninja-squad:springmockk")
-    testImplementation("io.github.logrecorder:logrecorder-assertions")
-    testImplementation("io.github.logrecorder:logrecorder-junit5")
-    testImplementation("io.github.logrecorder:logrecorder-logback")
     testImplementation("io.mockk:mockk-jvm")
-
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting")
 }
 
 tasks {
     withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
+        sourceCompatibility = "21"
+        targetCompatibility = "21"
     }
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "17"
+            jvmTarget = "21"
             freeCompilerArgs += "-Xjsr305=strict"
             javaParameters = true
         }
@@ -82,57 +64,4 @@ tasks {
             exceptionFormat = FULL
         }
     }
-}
-
-tasks {
-    asciidoctor {
-        inputs.dir(file("build/generated-snippets"))
-        dependsOn(test)
-        baseDirFollowsSourceDir()
-        forkOptions {
-            jvmArgs("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", "--add-opens", "java.base/java.io=ALL-UNNAMED")
-        }
-        options(
-            mapOf(
-                "doctype" to "book",
-                "backend" to "html5"
-            )
-        )
-        attributes(
-            mapOf(
-                "snippets" to file("build/generated-snippets"),
-                "source-highlighter" to "coderay",
-                "toclevels" to "3",
-                "sectlinks" to "true",
-                "data-uri" to "true",
-                "nofooter" to "true"
-            )
-        )
-    }
-    bootJar {
-        dependsOn(asciidoctor)
-        from(asciidoctor) {
-            into("BOOT-INF/classes/static/docs")
-        }
-    }
-    build {
-        dependsOn(koverHtmlReport)
-    }
-    test {
-        outputs.dir(file("build/generated-snippets"))
-    }
-}
-
-asciidoctorj {
-    fatalWarnings("include file not found") // make build fail if generated files are missing
-    modules {
-        diagram.use()
-        diagram.setVersion("2.2.13")
-    }
-}
-
-detekt {
-    allRules = true
-    buildUponDefaultConfig = true
-    config.from("configurations/detekt.yml")
 }

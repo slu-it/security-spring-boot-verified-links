@@ -1,1 +1,1 @@
-rootProject.name = "spring-boot-service"
+rootProject.name = "security-spring-boot-verified-links"
